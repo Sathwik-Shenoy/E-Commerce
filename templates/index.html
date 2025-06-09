@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Home - E-Commerce Store{% endblock %}
+
+{% block content %}
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="position-relative overflow-hidden rounded-4" style="height: 500px; background: var(--gradient);">
+            <div class="position-absolute top-0 start-0 w-100 h-100">
+                <div class="position-absolute top-0 start-0 w-100 h-100" style="background: url('https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover; opacity: 0.1;"></div>
+                <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.3) 100%);"></div>
+            </div>
+            <div class="position-relative h-100 d-flex align-items-center justify-content-center text-white text-center">
+                <div class="container">
+                    <h1 class="display-2 fw-bold mb-4" data-aos="fade-up">Welcome to E-Store</h1>
+                    <p class="lead mb-4" data-aos="fade-up" data-aos-delay="100">Discover amazing products at great prices</p>
+                    <div class="d-flex gap-3 justify-content-center" data-aos="fade-up" data-aos-delay="200">
+                        <a href="#products" class="btn btn-light btn-lg px-5">
+                            Start Shopping
+                        </a>
+                        <a href="#categories" class="btn btn-outline-light btn-lg px-5">
+                            Browse Categories
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-md-3">
+        <div class="card glass-card h-100" id="categories">
+            <div class="card-body">
+                <h5 class="card-title mb-4">Categories</h5>
+                <div class="list-group list-group-flush">
+                    <a href="#" class="list-group-item list-group-item-action border-0 d-flex align-items-center p-3">
+                        <i class="fas fa-mobile-alt me-3 text-primary fa-lg"></i>
+                        <div>
+                            <h6 class="mb-1">Electronics</h6>
+                            <small class="text-muted">Latest gadgets & devices</small>
+                        </div>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action border-0 d-flex align-items-center p-3">
+                        <i class="fas fa-tshirt me-3 text-primary fa-lg"></i>
+                        <div>
+                            <h6 class="mb-1">Clothing</h6>
+                            <small class="text-muted">Trendy fashion items</small>
+                        </div>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action border-0 d-flex align-items-center p-3">
+                        <i class="fas fa-book me-3 text-primary fa-lg"></i>
+                        <div>
+                            <h6 class="mb-1">Books</h6>
+                            <small class="text-muted">Best sellers & classics</small>
+                        </div>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action border-0 d-flex align-items-center p-3">
+                        <i class="fas fa-home me-3 text-primary fa-lg"></i>
+                        <div>
+                            <h6 class="mb-1">Home & Living</h6>
+                            <small class="text-muted">Decor & essentials</small>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div class="row" id="products">
+            {% for product in products %}
+            <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="{{ loop.index * 100 }}">
+                <div class="card h-100">
+                    <a href="{{ url_for('product_detail', product_id=product.id) }}" class="text-decoration-none">
+                        {% if product.image_url %}
+                        <div class="position-relative">
+                            <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                            <div class="position-absolute top-0 end-0 m-2">
+                                <button class="btn btn-light btn-sm rounded-circle p-2">
+                                    <i class="fas fa-heart text-danger"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
+                            <i class="fas fa-image fa-3x text-muted"></i>
+                        </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title text-dark">{{ product.name }}</h5>
+                            <p class="card-text text-muted">{{ product.description[:100] }}{% if product.description|length > 100 %}...{% endif %}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="h5 mb-0 text-primary">${{ "%.2f"|format(product.price) }}</span>
+                                    {% if product.stock > 0 %}
+                                    <span class="badge bg-success ms-2">In Stock</span>
+                                    {% else %}
+                                    <span class="badge bg-danger ms-2">Out of Stock</span>
+                                    {% endif %}
+                                </div>
+                                <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-cart-plus"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No products available at the moment.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card glass-card">
+            <div class="card-body p-5 text-center">
+                <h3 class="mb-4">Special Offers</h3>
+                <p class="lead mb-4">Subscribe to our newsletter to receive exclusive deals and updates!</p>
+                <form class="row g-3 justify-content-center">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <input type="email" class="form-control" placeholder="Enter your email">
+                            <button class="btn btn-primary" type="submit">Subscribe</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4 mb-4" data-aos="fade-up">
+        <div class="card h-100">
+            <div class="card-body text-center p-4">
+                <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                    <i class="fas fa-truck fa-2x text-primary"></i>
+                </div>
+                <h5 class="mb-3">Free Shipping</h5>
+                <p class="text-muted mb-0">On orders over $50</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="card h-100">
+            <div class="card-body text-center p-4">
+                <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                    <i class="fas fa-undo fa-2x text-primary"></i>
+                </div>
+                <h5 class="mb-3">Easy Returns</h5>
+                <p class="text-muted mb-0">30-day return policy</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="card h-100">
+            <div class="card-body text-center p-4">
+                <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                    <i class="fas fa-shield-alt fa-2x text-primary"></i>
+                </div>
+                <h5 class="mb-3">Secure Payment</h5>
+                <p class="text-muted mb-0">100% secure checkout</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
