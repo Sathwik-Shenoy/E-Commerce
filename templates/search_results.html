@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results - E-Commerce Store{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card glass-card">
+            <div class="card-body">
+                <h4 class="mb-4">
+                    {% if query %}
+                        Search results for "{{ query }}"
+                    {% else %}
+                        All Products
+                    {% endif %}
+                    <span class="badge bg-primary ms-2">{{ products|length }} products</span>
+                </h4>
+                
+                <!-- Search and Filter Form -->
+                <form method="GET" action="{{ url_for('search') }}" class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" name="q" value="{{ query or '' }}" placeholder="Search products...">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            <option value="Electronics" {% if category == 'Electronics' %}selected{% endif %}>Electronics</option>
+                            <option value="Clothing" {% if category == 'Clothing' %}selected{% endif %}>Clothing</option>
+                            <option value="Books" {% if category == 'Books' %}selected{% endif %}>Books</option>
+                            <option value="Home" {% if category == 'Home' %}selected{% endif %}>Home & Living</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" class="form-control" name="min_price" value="{{ min_price or '' }}" placeholder="Min Price" step="0.01">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" class="form-control" name="max_price" value="{{ max_price or '' }}" placeholder="Max Price" step="0.01">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-2"></i>Search
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Sort Options -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="btn-group" role="group">
+                        <a href="{{ url_for('search', q=query, category=category, min_price=min_price, max_price=max_price, sort='name') }}" 
+                           class="btn btn-outline-secondary {% if sort_by == 'name' %}active{% endif %}">Name</a>
+                        <a href="{{ url_for('search', q=query, category=category, min_price=min_price, max_price=max_price, sort='price_asc') }}" 
+                           class="btn btn-outline-secondary {% if sort_by == 'price_asc' %}active{% endif %}">Price ↑</a>
+                        <a href="{{ url_for('search', q=query, category=category, min_price=min_price, max_price=max_price, sort='price_desc') }}" 
+                           class="btn btn-outline-secondary {% if sort_by == 'price_desc' %}active{% endif %}">Price ↓</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Products Grid -->
+<div class="row">
+    {% if products %}
+        {% for product in products %}
+        <div class="col-md-4 col-lg-3 mb-4" data-aos="fade-up" data-aos-delay="{{ loop.index * 50 }}">
+            <div class="card h-100 product-card">
+                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="text-decoration-none">
+                    <div class="position-relative">
+                        {% if product.image_url %}
+                        <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <i class="fas fa-image fa-2x text-muted"></i>
+                        </div>
+                        {% endif %}
+                        
+                        {% if product.discount_percentage and product.discount_percentage > 0 %}
+                        <div class="position-absolute top-0 start-0 m-2">
+                            <span class="badge bg-danger">-{{ product.discount_percentage|int }}%</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="position-absolute top-0 end-0 m-2">
+                            <button class="btn btn-light btn-sm rounded-circle p-2 wishlist-btn" data-product-id="{{ product.id }}">
+                                <i class="fas fa-heart text-muted"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body">
+                        <h6 class="card-title text-dark">{{ product.name }}</h6>
+                        <p class="card-text text-muted small">{{ product.description[:80] }}{% if product.description|length > 80 %}...{% endif %}</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                {% if product.discount_percentage and product.discount_percentage > 0 %}
+                                <span class="h6 mb-0 text-primary">${{ "%.2f"|format(product.price * (1 - product.discount_percentage/100)) }}</span>
+                                <small class="text-muted text-decoration-line-through ms-1">${{ "%.2f"|format(product.price) }}</small>
+                                {% else %}
+                                <span class="h6 mb-0 text-primary">${{ "%.2f"|format(product.price) }}</span>
+                                {% endif %}
+                            </div>
+                            {% if product.stock > 0 %}
+                            <span class="badge bg-success">In Stock</span>
+                            {% else %}
+                            <span class="badge bg-danger">Out of Stock</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if product.category %}
+                        <small class="text-muted">
+                            <i class="fas fa-tag me-1"></i>{{ product.category }}
+                        </small>
+                        {% endif %}
+                    </div>
+                </a>
+                
+                <div class="card-footer bg-transparent border-0">
+                    {% if current_user.is_authenticated and product.stock > 0 %}
+                    <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}" class="d-inline">
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                            <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                        </button>
+                    </form>
+                    {% elif not current_user.is_authenticated %}
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-sm w-100">
+                        Login to Buy
+                    </a>
+                    {% else %}
+                    <button class="btn btn-secondary btn-sm w-100" disabled>
+                        Out of Stock
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">No products found</h4>
+            <p class="text-muted">Try adjusting your search criteria or browse all products.</p>
+            <a href="{{ url_for('home') }}" class="btn btn-primary">Browse All Products</a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.product-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    box-shadow: var(--shadow-sm);
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.wishlist-btn {
+    transition: all 0.3s ease;
+}
+
+.wishlist-btn:hover {
+    background-color: var(--accent-color) !important;
+    color: white !important;
+}
+
+.wishlist-btn:hover i {
+    color: white !important;
+}
+</style>
+
+<script>
+// Add to wishlist functionality
+document.querySelectorAll('.wishlist-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const productId = this.getAttribute('data-product-id');
+        const icon = this.querySelector('i');
+        
+        // Toggle wishlist (placeholder - would need backend implementation)
+        if (icon.classList.contains('text-muted')) {
+            icon.classList.remove('text-muted');
+            icon.classList.add('text-danger');
+            this.style.backgroundColor = '#f8f9fa';
+        } else {
+            icon.classList.remove('text-danger');
+            icon.classList.add('text-muted');
+            this.style.backgroundColor = '';
+        }
+    });
+});
+</script>
+{% endblock %}
